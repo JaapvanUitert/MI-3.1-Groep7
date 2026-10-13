@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt #plotten
 import sqlite3 as sqlite3
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import confusion_matrix, accuracy_score
+import io, contextlib
 
 
 ## lees data
@@ -37,8 +38,8 @@ mds = pd.get_dummies(mds, columns=cat_cols, dtype=float)
 features = mds.columns.drop("died")
 mds[features] = (mds[features] - mds[features].min()) / (mds[features].max() - mds[features].min())
 
-print(mds.shape)
-print("A priori kans op overlijden:", mds["died"].mean())
+print(f"Aantal rijen en kolommen na trimmen: \n{mds.shape}")
+print(f"A priori kans op overlijden: \n {mds["died"].mean()}")
 
 
 
@@ -62,6 +63,20 @@ p = nn.predict_proba(X_test)[:, 1]
 pred = (p > 0.5).astype(int)
 
 ## evalueren
-print(confusion_matrix(y_test, pred))
+print(f"confusion matrix: \n {confusion_matrix(y_test, pred)}")
 acc = accuracy_score(y_test, pred)
 print(f"Accuracy: {acc:.3f}  |  Error rate: {1 - acc:.3f}")
+
+## accuracy testen 
+results = []
+for lr in [0.01, 0.1, 0.5, 1.0]:
+    for ep in [50, 500, 1000, 2000]:
+        with contextlib.redirect_stdout(io.StringIO()):
+            model = MLPClassifier(hidden_layer_sizes=(3,),learning_rate_init= lr, max_iter=ep, random_state=42)
+        model.fit(X_train, y_train)
+        p = model.predict_proba(X_test)[:, 1]
+        pred = (p > 0.5).astype(int)
+        acc = accuracy_score(y_test, pred)
+
+        results.append((lr, ep, acc))
+        print(f"learning_rate={lr:<5} iterations={ep:<5} accuracy={acc * 100:.2f}%")
