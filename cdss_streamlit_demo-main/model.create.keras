@@ -1,11 +1,14 @@
 from pathlib import Path
 
+import os
 import keras
 import numpy as np
 
 # Volgorde van de acht inputs:
 # num_pregnancies, glucose, blood_pressure_dias, skin_thickness,
 # insulin, BMI, diab_pedigree, age
+
+os.chdir(os.path.join(os.path.abspath(os.path.curdir),u'cdss_streamlit_demo-main'))
 
 reference_mean = np.array(
     [3.0, 120.0, 70.0, 25.0, 80.0, 32.0, 0.5, 33.0],
