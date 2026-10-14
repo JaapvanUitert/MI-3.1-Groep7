@@ -1,82 +1,65 @@
-import random # willekeurige operaties
-import numpy as np # wiskundige operaties
-import pandas as pd # lezen van csv-bestanden
-import matplotlib.pyplot as plt #plotten
-import sqlite3 as sqlite3
-from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import confusion_matrix, accuracy_score
-import io, contextlib
+from pathlib import Path
 
+import keras
+import numpy as np
 
-## lees data
-mds = pd.read_csv("iknl_long_syntheticdata.csv", sep=";", skipinitialspace=True, na_values=["\\N", ""])
-mds.columns = mds.columns.str.strip()
+# Volgorde van de acht inputs:
+# num_pregnancies, glucose, blood_pressure_dias, skin_thickness,
+# insulin, BMI, diab_pedigree, age
 
-## check data
-print(f"koppen van de data: \n {mds.head()}")
-print(f"Aantal rijen en kolommen: \n{mds.shape}")
+reference_mean = np.array(
+    [3.0, 120.0, 70.0, 25.0, 80.0, 32.0, 0.5, 33.0],
+    dtype="float32",
+)
 
+reference_std = np.array(
+    [3.0, 30.0, 15.0, 12.0, 80.0, 7.0, 0.3, 12.0],
+    dtype="float32",
+)
 
+# Acht ruwe invoerwaarden per patiënt.
+inputs = keras.Input(
+    shape=(8,),
+    dtype="float32",
+    name="patient_features",
+)
 
-## identifiers, overlevingstijd en constante kolom verwijderen
-mds = mds.drop(columns=["key_nkr", "key_eid", "vit_stat_int", "topo"])
-mds = mds.rename(columns={"vit_stat": "died"})
+# Normalisatie wordt in model.keras opgeslagen.
+normalized = keras.layers.Normalization(
+    axis=-1,
+    mean=reference_mean,
+    variance=reference_std ** 2,
+    name="embedded_normalization",
+)(inputs)
 
-## kolommen met >25% missings weg, daarna rijen met missings weg
-missing = mds.isna().mean()
-mds = mds.drop(columns=missing[missing > 0.25].index)
-mds = mds.dropna()
+# Eén demoscore tussen 0 en 1.
+score_layer = keras.layers.Dense(
+    units=1,
+    activation="sigmoid",
+    name="demo_score",
+)
 
+outputs = score_layer(normalized)
 
-cat_cols = ["tumsoort", "diag_basis", "topo_sublok", "morf", "ct", "cn",
-            "stadium", "cstadium", "uitgebr_chir_code", "later", "diffgrad",
-            "her2_stat", "swk", "swk_uitslag", "chemo", "target", "rt",
-            "imm", "multifoc"]
-mds = pd.get_dummies(mds, columns=cat_cols, dtype=float)
+model = keras.Model(
+    inputs=inputs,
+    outputs=outputs,
+    name="unvalidated_demo_model",
+)
 
-## normaliseren
-features = mds.columns.drop("died")
-mds[features] = (mds[features] - mds[features].min()) / (mds[features].max() - mds[features].min())
+# Handgekozen gewichten: NIET geleerd uit trainingsdata.
+weights = np.array(
+    [0.20, 0.90, 0.20, 0.10, 0.05, 0.50, 0.25, 0.30],
+    dtype="float32",
+).reshape(8, 1)
 
-print(f"Aantal rijen en kolommen na trimmen: \n{mds.shape}")
-print(f"A priori kans op overlijden: \n {mds["died"].mean()}")
+bias = np.array([-0.60], dtype="float32")
 
+score_layer.set_weights([weights, bias])
 
+# Bij uitvoering: opslaan in de huidige werkmap.
+model_file = Path("model.keras")
+model.save(str(model_file))
 
-
-## train/test split (2/3 - 1/3)
-np.random.seed(42)
-idx = np.random.permutation(len(mds))
-n_train = int(2/3 * len(mds))
-train, test = mds.iloc[idx[:n_train]], mds.iloc[idx[n_train:]]
-
-X_train, y_train = train.drop("died", axis=1), train["died"]
-X_test,  y_test  = test.drop("died", axis=1),  test["died"]
-
-
-## model trainen
-nn = MLPClassifier(hidden_layer_sizes=(3,), max_iter=1000, random_state=42)
-nn.fit(X_train, y_train)
-
-## voorspellen
-p = nn.predict_proba(X_test)[:, 1]
-pred = (p > 0.5).astype(int)
-
-## evalueren
-print(f"confusion matrix: \n {confusion_matrix(y_test, pred)}")
-acc = accuracy_score(y_test, pred)
-print(f"Accuracy: {acc:.3f}  |  Error rate: {1 - acc:.3f}")
-
-## accuracy testen 
-results = []
-for lr in [0.01, 0.1, 0.5, 1.0]:
-    for ep in [50, 500, 1000, 2000]:
-        with contextlib.redirect_stdout(io.StringIO()):
-            model = MLPClassifier(hidden_layer_sizes=(3,),learning_rate_init= lr, max_iter=ep, random_state=42)
-        model.fit(X_train, y_train)
-        p = model.predict_proba(X_test)[:, 1]
-        pred = (p > 0.5).astype(int)
-        acc = accuracy_score(y_test, pred)
-
-        results.append((lr, ep, acc))
-        print(f"learning_rate={lr:<5} iterations={ep:<5} accuracy={acc * 100:.2f}%")
+model.summary()
+print(f"Opgeslagen: {model_file.resolve()}")
