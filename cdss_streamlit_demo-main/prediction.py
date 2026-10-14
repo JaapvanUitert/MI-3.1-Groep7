@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
-MODEL_FILE = Path(__file__).parent / "model.create.keras"
+MODEL_FILE = Path(__file__).parent / "model.keras"
 
 # The model expects its 8 inputs in exactly this order (the column order of
 # the training data). These are also the column names in the database.
@@ -24,7 +24,7 @@ FEATURES = [
 
 
 def load_model():
-    """Load your trained model from model.create.keras."""
+    """Load your trained model from model.keras"""
     import keras  # imported here so the rest of this file works without TensorFlow
 
     return keras.models.load_model(str(MODEL_FILE), compile=False)

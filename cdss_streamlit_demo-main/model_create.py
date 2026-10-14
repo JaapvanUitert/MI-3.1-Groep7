@@ -61,7 +61,7 @@ bias = np.array([-0.60], dtype="float32")
 score_layer.set_weights([weights, bias])
 
 # Bij uitvoering: opslaan in de huidige werkmap.
-model_file = Path("model.keras")
+model_file = Path('model.keras')
 model.save(str(model_file))
 
 model.summary()
