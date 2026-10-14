@@ -12,6 +12,7 @@ import pandas as pd
 ## met de data base inlezen
 
 ## variabelen in tabel dat voorspelt wilt worden
+RANDOM_SEED = 42
 TARGET = "diab_pedigree"
 
 ## database inlezen
@@ -43,8 +44,7 @@ X = mds[features].to_numpy(dtype="float32")
 Y = mds[TARGET].to_numpy(dtype="float32").reshape(-1, 1)
 
 ## train/test split 
-keras.utils.set_random_seed(42)
-idx = np.random.default_rng(42).permutation(len(data))
+idx = np.random.default_rng(RANDOM_SEED).permutation(len(data))
 n_train = int(2 / 3 * len(mds))
 train_idx, test_idx = idx[:n_train], idx[n_train:]
 X_train, y_train = X[train_idx], Y[train_idx]
@@ -93,18 +93,17 @@ history = model.fit(
     verbose=0,
 )
 
-predicted = model.predict(X_test, verbose=0)
-mae = float(np.mean(np.abs(predicted - y_test)))
-rmse = float(np.sqrt(np.mean((predicted - y_test) ** 2)))
-baseline_mae = float(np.mean(np.abs(y_test - y_train.mean())))
-print(f"Test MAE: {mae:.4f}")
-print(f"Test RMSE: {rmse:.4f}")
-print(f"Training-mean baseline test MAE: {baseline_mae:.4f}")
+predicted = model.predict(X_test, verbose=1)
+mean_absolute_error= float(np.mean(np.abs(predicted - y_test)))
+rooted_mean_squared_error = float(np.sqrt(np.mean((predicted - y_test) ** 2)))
+baseline_mean_absolute_error = float(np.mean(np.abs(y_test - y_train.mean())))
+print(f"Test MAE: {mean_absolute_error:.4f}")
+print(f"Test RMSE: {rooted_mean_squared_error:.4f}")
+print(f"Training-mean baseline test MAE: {baseline_mean_absolute_error:.4f}")
 print(pd.DataFrame({
     "actual_pedigree": y_test.ravel(),
     "predicted_pedigree": predicted.ravel(),
     }).to_string(index=False))
-print("With five patients, these scores do not establish reliable accuracy.")
 
 model_file = Path('model.keras')
 model.save(str(model_file))
