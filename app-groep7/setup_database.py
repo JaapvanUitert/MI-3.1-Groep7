@@ -1,4 +1,4 @@
-"""Create the SQLite database file ehr.db from database.sql.
+"""Create the SQLite database file longkanker.db from database.sql.
 
 Run:  python setup_database.py
 
@@ -10,12 +10,12 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 SQL_FILE = HERE / "database.sql"
-DB_FILE = HERE / "ehr.db"
+DB_FILE = HERE / "longkanker.db"
 
 with sqlite3.connect(DB_FILE) as conn:
     conn.executescript(SQL_FILE.read_text(encoding="utf-8"))
     rows = conn.execute("SELECT id, display_name FROM patient ORDER BY id").fetchall()
 
-print(f"Created {DB_FILE.name} with {len(rows)} patients:")
+print(f"Database {DB_FILE.name} succesvol aangemaakt met {len(rows)} patiënten:")
 for patient_id, name in rows:
-    print(f"  {patient_id}: {name}")
+    print(f"  Patiënt ID {patient_id}: {name}")

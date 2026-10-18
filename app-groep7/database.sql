@@ -1,32 +1,24 @@
--- A tiny "electronic health record" with five (fictional) patients.
--- The values are the 8 inputs the model expects, in the same order as the
--- training data: pregnancies, glucose, diastolic blood pressure, skin
--- thickness, insulin, BMI, diabetes pedigree function, age.
---
--- This file is written for SQLite. Run `python setup_database.py` to turn it
--- into the database file ehr.db.
-
+-- Database met fictieve longkankerpatienten op basis van IKNL
 DROP TABLE IF EXISTS patient;
 
 CREATE TABLE patient (
-  id                  INTEGER PRIMARY KEY,   -- filled in automatically
+  id                  INTEGER PRIMARY KEY,
   display_name        TEXT NOT NULL,
-  num_pregnancies     INTEGER,
-  glucose             INTEGER,
-  blood_pressure_dias INTEGER,
-  skin_thickness      INTEGER,
-  insulin             INTEGER,
-  BMI                 REAL,
-  diab_pedigree       REAL,
-  age                 INTEGER
+  leeft               INTEGER NOT NULL, -- Leeftijd in jaren
+  gesl                INTEGER NOT NULL, -- 1 = Man, 2 = Vrouw
+  stadium_num         INTEGER NOT NULL, -- 0 = In situ, 1 = Stadium I, 2 = Stadium II, 3 = Stadium III, 4 = Stadium IV
+  SCLC                INTEGER NOT NULL, -- 0 = Niet-kleincellig (NSCLC), 1 = Kleincellig (SCLC)
+  org_chir            INTEGER NOT NULL, -- Orgaanchirurgie: 0 = Nee, 1 = Ja
+  chemo               INTEGER NOT NULL, -- Chemotherapie: 0 = Nee, 1 = Ja
+  rt                  INTEGER NOT NULL, -- Radiotherapie: 0 = Nee, 1 = Ja
+  imm                 INTEGER NOT NULL  -- Immunotherapie: 0 = Nee, 1 = Ja
 );
 
 INSERT INTO patient
-  (display_name, num_pregnancies, glucose, blood_pressure_dias, skin_thickness,
-   insulin, BMI, diab_pedigree, age)
+  (display_name, leeft, gesl, stadium_num, SCLC, org_chir, chemo, rt, imm)
 VALUES
-  ('Susan Foreman',    6, 148, 72, 35,   0, 33.6, 0.627, 50),
-  ('Sarah Jane Smith', 2, 106, 56, 27, 165, 29.0, 0.426, 22),
-  ('Tegan Jovanka',    2, 174, 88, 37, 120, 44.5, 0.646, 24),
-  ('Amy Pond',         4,  95, 60, 32,   0, 35.4, 0.284, 28),
-  ('Yasmin Khan',      0, 126, 86, 27, 120, 27.4, 0.515, 21);
+  ('Patiënt 1 - Stadium I NSCLC (Vroeg stadium)',    62, 2, 1, 0, 1, 0, 0, 0),
+  ('Patiënt 2 - Stadium III NSCLC (Lokaal uitgebreid)', 68, 1, 3, 0, 1, 1, 1, 1),
+  ('Patiënt 3 - Stadium IV NSCLC (Gemetastaseerd)', 74, 1, 4, 0, 0, 1, 0, 1),
+  ('Patiënt 4 - Stadium III SCLC (Kleincellig)', 59, 2, 3, 1, 0, 1, 1, 0),
+  ('Patiënt 5 - Stadium II NSCLC (Resectabel)', 52, 1, 2, 0, 1, 1, 0, 0);
