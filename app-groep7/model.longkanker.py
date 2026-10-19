@@ -71,7 +71,7 @@ history = model.fit(
     epochs=100,
     batch_size=32,
     validation_split=0.2,
-    verbose=0
+    verbose=1
 )
 
 # evalueren op testdata
