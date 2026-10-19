@@ -1,121 +1,105 @@
-"""A toy clinical decision support app.
-
-Run:  streamlit run app.py
-
-How Streamlit works, in one sentence: every time the user clicks or types
-something, Streamlit runs this whole script again from top to bottom and
-redraws the page. Things that must survive between runs (like a value the
-user typed) are kept in st.session_state.
-
-This is a technical demo. It is NOT meant to be used for clinical decisions.
-"""
 import sqlite3
 from contextlib import closing
 from pathlib import Path
-
 import numpy as np
 import streamlit as st
-
 import prediction
 
-DB_FILE = Path(__file__).parent / "ehr.db"
+DB_FILE = Path(__file__).parent / "longkanker.db"
 
-st.set_page_config(page_title="A simple ML demo")
-st.title("A simple ML demo")
-st.caption("Technical demo only. Not intended for clinical decisions.")
+st.set_page_config(page_title="CDSS Longkanker Keuzehulp", layout="centered")
 
-# --- 1. Check that the files we need are there ------------------------------
+st.title("CDSS Longkanker Keuzehulp")
+st.caption("Vergelijk eenvoudig het effect van behandelopties op het voorspelde risico.")
+
 if not DB_FILE.exists():
-    st.error("ehr.db not found. Run `python setup_database.py` first (see the README).")
+    st.error("ehr.db niet gevonden. Voer eerst `python setup_database.py` uit.")
     st.stop()
 if not prediction.MODEL_FILE.exists():
-    st.error("model.keras not found. Train your model and save it as model.keras "
-             "in the same folder as app.py (see the README).")
+    st.error("model.keras niet gevonden. Train eerst het neuraal netwerk via `python model_longkanker.py`.")
     st.stop()
 
-
-# --- 2. Load the model (once) and the patients (on every run) ---------------
-@st.cache_resource(max_entries=1)  # load the model only once, not on every click...
-def get_model(file_modified_time):  # ...but again whenever model.keras is replaced
+# model+patienten inladen
+@st.cache_resource(max_entries=1)
+def get_model(mtime):
     return prediction.load_model()
 
-
 def load_patients():
-    """Read all patients from the database, as {id: {column: value}}."""
     with closing(sqlite3.connect(DB_FILE)) as conn:
         conn.row_factory = sqlite3.Row
         rows = conn.execute("SELECT * FROM patient ORDER BY id").fetchall()
     return {row["id"]: dict(row) for row in rows}
 
-
 patients = load_patients()
 if not patients:
-    st.warning("The database has no patients. Check database.sql and run setup_database.py.")
+    st.warning("Geen patiënten gevonden in de database.")
     st.stop()
 
 try:
     model = get_model(prediction.MODEL_FILE.stat().st_mtime)
-except ImportError as error:
-    st.error("TensorFlow is not installed in the Python environment that runs this app. "
-             "Activate your virtual environment and run `pip install -r requirements.txt`. "
-             f"(Error: {error})")
-    st.stop()
 except Exception as error:
-    st.error("model.keras exists but could not be loaded. Was it saved with "
-             "`model.save('model.keras')`, using the same TensorFlow version as in "
-             f"requirements.txt? See Troubleshooting in the README. (Error: {error})")
+    st.error(f"Kan model.keras niet laden: {error}")
     st.stop()
 
-try:
-    all_inputs = np.vstack([prediction.make_input(p) for p in patients.values()])
-except ValueError as error:
-    st.error(f"Problem with the patient data: {error}")
-    st.stop()
-
-problem = prediction.check_model(model, all_inputs)
-if problem:
-    st.error("Your model does not fit this app yet. " + problem)
-    st.stop()
-
-# The blood pressure typed in by the user. None = use the value from the database.
-st.session_state.setdefault("userbp", None)
-
-
-def forget_userbp():
-    st.session_state.userbp = None
-
-
-# --- 3. The page -------------------------------------------------------------
-st.subheader("Patients")
-patient_id = st.radio(
-    "Select a patient",
+# patient selecteren
+st.subheader("1. Selecteer patiënt")
+patient_id = st.selectbox(
+    "Kies een patiënt:",
     options=list(patients),
-    format_func=lambda pid: patients[pid]["display_name"],
-    on_change=forget_userbp,  # a new patient starts without a typed-in value
+    format_func=lambda pid: patients[pid]["display_name"]
 )
-current_patient = patients[patient_id]
+patient = patients[patient_id]
 
-results = st.container()  # filled in below, but shown here, above the form
+st.divider()
 
-with st.form("bp_form", clear_on_submit=True):
-    new_bp = st.number_input(
-        "If desired, enter a new blood pressure value here",
-        min_value=1, max_value=400, value=None, step=1,
-        help="Leave empty and press Submit to go back to the value in the database.",
-    )
-    if st.form_submit_button("Submit"):
-        st.session_state.userbp = new_bp  # used for this prediction only, not saved
+# behandelkeuze
+st.subheader("2. Kies een behandeloptie")
+behandeling_keuze = st.radio(
+    "Welke behandeling wilt u overwegen?",
+    options=[
+        "Geen chirurgie of chemotherapie",
+        "Alleen Orgaanchirurgie",
+        "Alleen Chemotherapie",
+        "Combinatie van Chirurgie en Chemotherapie"
+    ],
+    index=0
+)
 
-with results:
-    userbp = st.session_state.userbp
-    p = prediction.get_prediction(model, current_patient, userbp)
+# naar binaire waarden voor het neuraal netwerk
+org_chir = 1 if "Chirurgie" in behandeling_keuze else 0
+chemo = 1 if "Chemotherapie" in behandeling_keuze else 0
 
-    st.markdown(f"**Current patient:** {current_patient['display_name']}")
-    st.markdown(f"**User-entered blood pressure:** {userbp if userbp is not None else 'none'}")
-    st.metric("Prediction", f"{p:.2f}")
-    st.caption("The model's output, between 0 and 1. Higher means the model thinks "
-               "diabetes is more likely. It is not a calibrated risk.")
+st.divider()
 
-    with st.expander("What the model receives"):
-        x = prediction.make_input(current_patient, userbp)[0]
-        st.table({"input": prediction.FEATURES, "value": [float(v) for v in x]})
+# berekend risico
+st.subheader("3. Berekend Risico")
+
+# berekening via het model
+prob_overlijden = prediction.get_prediction(model, patient, org_chir, chemo)
+risico_label = "Hoog Risico" if prob_overlijden >= 0.50 else "Laag Risico"
+
+st.metric(
+    label="Risicocategorie", 
+    value=risico_label, 
+    delta=f"{prob_overlijden*100:.1f}% kans op overlijden", 
+    delta_color="inverse"
+)
+st.progress(prob_overlijden)
+
+st.divider()
+
+# vragen voor de arts
+st.subheader("4. Vragen voor uw arts")
+st.write("Gebruik deze voorbeeldvragen ter voorbereiding op uw gesprek:")
+
+st.markdown(f"""
+* **Geschiktheid:** Is de optie *"{behandeling_keuze}"* geschikt voor mijn persoonlijke situatie?
+* **Doel van de behandeling:** Is deze keuze gericht op genezing of op levensverlenging en kwaliteit van leven?
+* **Bijwerkingen:** Welke bijwerkingen of hersteltijd kan ik verwachten bij deze behandeling?
+""")
+
+st.text_area(
+    "Aanvullende eigen vragen of opmerkingen:",
+    placeholder="Typ hier uw eigen vragen om mee te nemen naar de arts...",
+    height=120
+)
