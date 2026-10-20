@@ -1,4 +1,5 @@
 streamlit>=1.37
-tensorflow>=2.16
-keras>=3.15
-pandas>=3.0
+tensorflow
+keras
+pandas
+numpy
