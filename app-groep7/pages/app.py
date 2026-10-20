@@ -5,9 +5,9 @@ import numpy as np
 import streamlit as st
 import prediction
 
-DB_FILE = Path(__file__).parent / "longkanker.db"
+DB_FILE = Path(__file__).parent.parent / "longkanker.db"
 
-st.set_page_config(page_title="CDSS Longkanker Keuzehulp", layout="centered")
+st.set_page_config(page_title="CDSS Longkanker Keuzehulp", layout="centered", initial_sidebar_state="collapsed")
 
 st.title("CDSS Longkanker Keuzehulp")
 st.caption("Vergelijk eenvoudig het effect van behandelopties op het voorspelde risico.")
