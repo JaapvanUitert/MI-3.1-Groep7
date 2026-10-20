@@ -38,7 +38,7 @@ if not patients:
 try:
     model = get_model(prediction.MODEL_FILE.stat().st_mtime)
 except Exception as error:
-    st.error(f"Kan model.keras niet laden: {error}")
+    st.error(f"Kan model.longkanker.keras niet laden: {error}")
     st.stop()
 
 # patient selecteren
