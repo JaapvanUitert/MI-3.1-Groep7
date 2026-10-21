@@ -21,6 +21,18 @@ df = pd.read_csv(DATA_FILE, sep=";")
 # kolomnamen opschonen (spaties verwijderen)
 df.columns = df.columns.str.strip()
 
+# Omzetten naar numerieke waarden
+df["vit_stat_int"] = pd.to_numeric(
+    df["vit_stat_int"], errors="coerce"
+)
+
+# Alleen patiënten met vit_stat_int >= 365 behouden
+n_before = len(df)
+df = df.loc[df["vit_stat_int"] >= 365].copy()
+
+print(f"Verwijderde patiënten: {n_before - len(df)}")
+print(f"Patiënten na filtering: {len(df)}")
+
 print(f"Aantal patiënten in dataset: {len(df)}")
 print(f"A priori risico op overlijden (vit_stat = 1): {df[TARGET].mean():.2%}")
 
