@@ -133,15 +133,22 @@ ranking["Voorspeld overlijdensrisico"] = ranking["Kans"].map(
     lambda kans: f"{kans * 100:.1f}%"
 )
 
+tabel = ranking[
+    [
+        "Positie",
+        "Behandeloptie",
+        "Voorspeld overlijdensrisico",
+        "Risicocategorie",
+    ]
+]
+
+tabel_stijl = tabel.style.set_properties(**{
+    "background-color": "#FFFFFF",
+    "color": "#1F2937",
+})
+
 st.dataframe(
-    ranking[
-        [
-            "Positie",
-            "Behandeloptie",
-            "Voorspeld overlijdensrisico",
-            "Risicocategorie",
-        ]
-    ],
+    tabel_stijl,
     hide_index=True,
     use_container_width=True,
 )
@@ -155,8 +162,8 @@ st.caption(
 st.divider()
 
 # vragen voor de arts
-st.subheader("4. Vragen voor uw arts")
-st.write("Gebruik deze voorbeeldvragen ter voorbereiding op uw gesprek:")
+st.subheader("3. Vragen voor uw arts")
+st.write("Deze voorbeeldvragen kunt u meenemen naar uw arts of verpleegkundig specialist.")
 
 st.markdown(f"""
 * **Geschiktheid:** Is de optie *"{behandeling}"* geschikt voor mijn persoonlijke situatie?
