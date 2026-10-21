@@ -140,15 +140,22 @@ ranking["Voorspeld overlijdensrisico"] = ranking["Kans"].map(
     lambda kans: f"{kans * 100:.1f}%"
 )
 
+tabel = ranking[
+    [
+        "Positie",
+        "Behandeloptie",
+        "Voorspeld overlijdensrisico",
+        "Risicocategorie",
+    ]
+]
+
+tabel_stijl = tabel.style.set_properties(**{
+    "background-color": "#FFFFFF",
+    "color": "#1F2937",
+})
+
 st.dataframe(
-    ranking[
-        [
-            "Positie",
-            "Behandeloptie",
-            "Voorspeld overlijdensrisico",
-            "Risicocategorie",
-        ]
-    ],
+    tabel_stijl,
     hide_index=True,
     use_container_width=True,
 )
