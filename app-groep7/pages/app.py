@@ -43,13 +43,6 @@ except Exception as error:
     st.error(f"Kan model.longkanker.keras niet laden: {error}")
     st.stop()
 
-# patient selecteren
-# st.subheader("1. Selecteer patiënt")
-# patient_id = st.selectbox(
-#     "Kies een patiënt:",
-#     options=list(patients),
-#     format_func=lambda pid: patients[pid]["display_name"]
-# )
 patient = patients[1]
 
 
@@ -97,7 +90,7 @@ behandelopties = {
 
 st.subheader("2. Vergelijk behandelopties")
 st.write(
-    "Voorspeld overlijdensrisico per behandeloptie, "
+    "Voorspeld risico een jaar na de behandeling per behandeloptie, "
     "gerangschikt van laag naar hoog."
 )
 
@@ -109,16 +102,17 @@ for behandeling, (org_chir, chemo) in behandelopties.items():
         prediction.get_prediction(model, patient, leeftijd, geslacht, stadium, org_chir, chemo)
     )
 
-    if not math.isfinite(kans) or not 0 <= kans <= 1:
-        st.error(f"Ongeldige modeluitkomst voor: {behandeling}")
-        st.stop()
-
+    if kans >= 0.70:
+        categorie = "Hoog risico"
+    elif kans >= 0.60:
+        categorie = "Gemiddeld risico"
+    else:
+        categorie = "Laag risico"
+    
     resultaten.append({
         "Behandeloptie": behandeling,
         "Kans": kans,
-        "Risicocategorie": (
-            "Hoog risico" if kans >= 0.50 else "Laag risico"
-        ),
+        "Risicocategorie": (categorie),
     })
 
 # Sorteer op de ongeronde voorspellingen
