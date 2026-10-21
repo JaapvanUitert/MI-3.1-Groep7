@@ -44,44 +44,53 @@ except Exception as error:
     st.stop()
 
 # patient selecteren
-st.subheader("1. Vul patiëntgegevens in")
-stadium = st.radio(
-    "Wat is het stadium van uw longkanker?",
-    options=["I", "II", "III", "IV"],
-    index=None,
-    horizontal=True,
+st.subheader("1. Selecteer patiënt")
+patient_id = st.selectbox(
+    "Kies een patiënt:",
+    options=list(patients),
+    format_func=lambda pid: patients[pid]["display_name"]
 )
+patient = patients[patient_id]
 
-st.caption(
-    "Vul het stadium in dat uw behandelaar heeft vastgesteld. "
-    "Weet u het niet? Vraag dit dan na bij uw behandelaar."
-)
 
-leeftijd = st.number_input(
-    "Wat is uw leeftijd in jaren?",
-    min_value=0,
-    value=None,
-    step=1,
-    placeholder="Vul uw leeftijd in",
-)
+# st.subheader("1. Vul patiëntgegevens in")
+# stadium = st.radio(
+#     "Wat is het stadium van uw longkanker?",
+#     options=["I", "II", "III", "IV"],
+#     index=None,
+#     horizontal=True,
+# )
 
-geslacht = st.radio(
-    "Wat is uw geslacht?",
-    options=["Vrouw", "Man", "Anders / onbekend"],
-    index=None,
-    horizontal=True,
-)
+# st.caption(
+#     "Vul het stadium in dat uw behandelaar heeft vastgesteld. "
+#     "Weet u het niet? Vraag dit dan na bij uw behandelaar."
+# )
 
-if stadium is not None and leeftijd is not None and geslacht is not None:
-    patientgegevens = {
-        "stadium": stadium,
-        "leeftijd": int(leeftijd),
-        "geslacht": geslacht,
-    }
+# leeftijd = st.number_input(
+#     "Wat is uw leeftijd in jaren?",
+#     min_value=0,
+#     value=None,
+#     step=1,
+#     placeholder="Vul uw leeftijd in",
+# )
 
-    # Gebruik patientgegevens als invoer voor jullie voorspelmodel.
-else:
-    st.info("Vul alle patiëntgegevens in om verder te gaan.")
+# geslacht = st.radio(
+#     "Wat is uw geslacht?",
+#     options=["Vrouw", "Man", "Anders / onbekend"],
+#     index=None,
+#     horizontal=True,
+# )
+
+# if stadium is not None and leeftijd is not None and geslacht is not None:
+#     patientgegevens = {
+#         "stadium": stadium,
+#         "leeftijd": int(leeftijd),
+#         "geslacht": geslacht,
+#     }
+
+#     # Gebruik patientgegevens als invoer voor jullie voorspelmodel.
+# else:
+#     st.info("Vul alle patiëntgegevens in om verder te gaan.")
 
 st.divider()
 
