@@ -5,7 +5,7 @@ import keras
 
 RANDOM_SEED = 42
 TARGET = "vit_stat"
-FEATURES = ["leeft", "gesl", "tumsoort", "org_chir", "chemo"]
+FEATURES = ["leeft", "gesl", "stadium", "tumsoort", "org_chir", "chemo"]
 
 PATH = Path(__file__).resolve().parent
 DATA_FILE = PATH / "iknl_long_syntheticdata.csv"

@@ -5,7 +5,8 @@ MODEL_FILE = Path(__file__).parent / "model.longkanker.keras"
 
 FEATURES = [
     "leeft",
-    "gesl",
+    "gesl", 
+    "stadium",
     "tumsoort",
     "org_chir",
     "chemo"
@@ -18,13 +19,25 @@ def load_model():
 def preprocess(x):
     return x
 
-def encode_geslacht(geslacht):
+def numeriek_geslacht(geslacht):
     value = str(geslacht).strip().lower()
 
     if value == "man":
         return 1
-    if value == "vrouw":
+    else:
         return 2
+
+def numeriek_stadium(stadium):
+    value = str(stadium).strip()
+
+    if value == "I":
+        return "1"
+    elif value == "II":
+        return "2"
+    elif value == "III":
+        return "3A" 
+    else:
+        return "4"
 
 def make_input(patient, leeftijd, geslacht, stadium, org_chir=None, chemo=None):
     values = dict(patient)
@@ -33,7 +46,8 @@ def make_input(patient, leeftijd, geslacht, stadium, org_chir=None, chemo=None):
         raise ValueError("Leeftijd en geslacht moeten ingevuld zijn.")
 
     values["leeft"] = leeftijd
-    values["gesl"] = encode_geslacht(geslacht)
+    values["gesl"] = numeriek_geslacht(geslacht)
+    values["stadium"]= numeriek_stadium(stadium)
     
     if org_chir is not None:
         values["org_chir"] = org_chir
