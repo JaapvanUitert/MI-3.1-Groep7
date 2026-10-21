@@ -96,7 +96,7 @@ if __name__ == "__main__":
     if MODEL_FILE.exists():
         m = load_model()
         print("Model geladen.")
-        pred = get_prediction(m, sample_patient, org_chir=0, chemo=0)
+        pred = get_prediction(m, sample_patient, leeftijd = 55, geslacht= "man", stadium= "I", org_chir=0, chemo=0)
         print(f"Voorspelde kans op vit_stat=1 (met chirurgie): {pred:.3f}")
     else:
         print("model.keras nog niet gevonden. Voer eerst model_longkanker.py uit.")
