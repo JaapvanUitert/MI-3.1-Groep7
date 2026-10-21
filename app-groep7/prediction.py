@@ -18,19 +18,54 @@ def load_model():
 def preprocess(x):
     return x
 
-def make_input(patient, org_chir=None, chemo=None):
+def encode_geslacht(geslacht):
+    value = str(geslacht).strip().lower()
+
+    if value == "man":
+        return 1
+    if value == "vrouw":
+        return 2
+
+def make_input(patient, leeftijd, geslacht, stadium, org_chir=None, chemo=None):
     values = dict(patient)
+
+    if leeftijd is None or geslacht is None:
+        raise ValueError("Leeftijd en geslacht moeten ingevuld zijn.")
+
+    values["leeft"] = leeftijd
+    values["gesl"] = encode_geslacht(geslacht)
+    
     if org_chir is not None:
         values["org_chir"] = org_chir
     if chemo is not None:
         values["chemo"] = chemo
         
-    for f in FEATURES:
-        if f not in values or values[f] is None:
-            raise ValueError(f"Geen waarde gevonden voor feature '{f}' bij patiënt {values.get('display_name')}.")
-            
-    raw = np.array([[float(values[f]) for f in FEATURES]])
-    return preprocess(raw)
+    numeric_values = []
+    for feature in FEATURES:
+        value = values.get(feature)
+        if value is None:
+            raise ValueError(
+                f"Geen waarde gevonden voor feature '{feature}' "
+                f"bij patiënt {values.get('display_name', values.get('id'))}."
+            )
+
+        try:
+            number = float(value)
+        except (TypeError, ValueError) as error:
+            raise ValueError(
+                f"Feature '{feature}' moet numeriek zijn; gekregen: {value!r}."
+            ) from error
+
+        if not np.isfinite(number):
+            raise ValueError(f"Feature '{feature}' bevat geen eindige waarde.")
+
+        numeric_values.append(number)
+
+    raw = np.array([numeric_values], dtype=np.float32)
+    processed = np.asarray(preprocess(raw))
+    if not np.all(np.isfinite(processed)):
+        raise ValueError("De voorbewerkte modelinvoer bevat ongeldige waarden.")
+    return processed
 
 def check_model(model, X):
     try:
@@ -43,8 +78,8 @@ def check_model(model, X):
         return "De modeluitvoer valt niet netjes tussen 0 en 1."
     return None
 
-def get_prediction(model, patient, org_chir, chemo):
-    x = make_input(patient, org_chir, chemo)
+def get_prediction(model, patient, leeftijd, geslacht, stadium, org_chir, chemo):
+    x = make_input(patient,leeftijd, geslacht, stadium, org_chir, chemo)
     return float(model.predict(x, verbose=0)[0, 0])
 
 

@@ -44,53 +44,46 @@ except Exception as error:
     st.stop()
 
 # patient selecteren
-st.subheader("1. Selecteer patiënt")
-patient_id = st.selectbox(
-    "Kies een patiënt:",
-    options=list(patients),
-    format_func=lambda pid: patients[pid]["display_name"]
+# st.subheader("1. Selecteer patiënt")
+# patient_id = st.selectbox(
+#     "Kies een patiënt:",
+#     options=list(patients),
+#     format_func=lambda pid: patients[pid]["display_name"]
+# )
+patient = patients[1]
+
+
+st.subheader("1. Vul patiëntgegevens in")
+stadium = st.radio(
+    "Wat is het stadium van uw longkanker?",
+    options=["I", "II", "III", "IV"],
+    index=None,
+    horizontal=True,
 )
-patient = patients[patient_id]
 
+st.caption(
+    "Vul het stadium in dat uw behandelaar heeft vastgesteld. "
+    "Weet u het niet? Vraag dit dan na bij uw behandelaar."
+)
 
-# st.subheader("1. Vul patiëntgegevens in")
-# stadium = st.radio(
-#     "Wat is het stadium van uw longkanker?",
-#     options=["I", "II", "III", "IV"],
-#     index=None,
-#     horizontal=True,
-# )
+leeftijd = st.number_input(
+    "Wat is uw leeftijd in jaren?",
+    min_value=0,
+    value=None,
+    step=1,
+    placeholder="Vul uw leeftijd in",
+)
 
-# st.caption(
-#     "Vul het stadium in dat uw behandelaar heeft vastgesteld. "
-#     "Weet u het niet? Vraag dit dan na bij uw behandelaar."
-# )
+geslacht = st.radio(
+    "Wat is uw geslacht?",
+    options=["Vrouw", "Man", "Anders / onbekend"],
+    index=None,
+    horizontal=True,
+)
 
-# leeftijd = st.number_input(
-#     "Wat is uw leeftijd in jaren?",
-#     min_value=0,
-#     value=None,
-#     step=1,
-#     placeholder="Vul uw leeftijd in",
-# )
-
-# geslacht = st.radio(
-#     "Wat is uw geslacht?",
-#     options=["Vrouw", "Man", "Anders / onbekend"],
-#     index=None,
-#     horizontal=True,
-# )
-
-# if stadium is not None and leeftijd is not None and geslacht is not None:
-#     patientgegevens = {
-#         "stadium": stadium,
-#         "leeftijd": int(leeftijd),
-#         "geslacht": geslacht,
-#     }
-
-#     # Gebruik patientgegevens als invoer voor jullie voorspelmodel.
-# else:
-#     st.info("Vul alle patiëntgegevens in om verder te gaan.")
+if stadium is None or leeftijd is None or geslacht is None:
+    st.info("Vul alle patiëntgegevens in om verder te gaan.")
+    st.stop()
 
 st.divider()
 
@@ -113,7 +106,7 @@ resultaten = []
 # Vier voorspellingen voor dezelfde patiënt
 for behandeling, (org_chir, chemo) in behandelopties.items():
     kans = float(
-        prediction.get_prediction(model, patient, org_chir, chemo)
+        prediction.get_prediction(model, patient, leeftijd, geslacht, stadium, org_chir, chemo)
     )
 
     if not math.isfinite(kans) or not 0 <= kans <= 1:
