@@ -54,42 +54,6 @@ patient = patients[patient_id]
 
 st.divider()
 
-# behandelkeuze
-# st.subheader("2. Kies een behandeloptie")
-# behandeling_keuze = st.radio(
-#     "Welke behandeling wilt u overwegen?",
-#     options=[
-#         "Geen chirurgie of chemotherapie",
-#         "Alleen Orgaanchirurgie",
-#         "Alleen Chemotherapie",
-#         "Combinatie van Chirurgie en Chemotherapie"
-#     ],
-#     index=0
-# )
-
-# # naar binaire waarden voor het neuraal netwerk
-# org_chir = 1 if "Chirurgie" in behandeling_keuze else 0
-# chemo = 1 if "Chemotherapie" in behandeling_keuze else 0
-
-# st.divider()
-
-# # berekend risico
-# st.subheader("3. Berekend Risico")
-
-# # berekening via het model
-# prob_overlijden = prediction.get_prediction(model, patient, org_chir, chemo)
-# risico_label = "Hoog Risico" if prob_overlijden >= 0.50 else "Laag Risico"
-
-# st.metric(
-#     label="Risicocategorie", 
-#     value=risico_label, 
-#     delta=f"{prob_overlijden*100:.1f}% kans op overlijden", 
-#     delta_color="inverse"
-# )
-# st.progress(prob_overlijden)
-
-# st.divider()
-
 # Expliciete mapping: behandeloptie -> (org_chir, chemo)
 behandelopties = {
     "Geen chirurgie of chemotherapie": (0, 0),
