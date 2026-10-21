@@ -4,6 +4,8 @@ from pathlib import Path
 import numpy as np
 import streamlit as st
 import prediction
+import math
+import pandas as pd
 
 DB_FILE = Path(__file__).parent.parent / "longkanker.db"
 
@@ -53,38 +55,105 @@ patient = patients[patient_id]
 st.divider()
 
 # behandelkeuze
-st.subheader("2. Kies een behandeloptie")
-behandeling_keuze = st.radio(
-    "Welke behandeling wilt u overwegen?",
-    options=[
-        "Geen chirurgie of chemotherapie",
-        "Alleen Orgaanchirurgie",
-        "Alleen Chemotherapie",
-        "Combinatie van Chirurgie en Chemotherapie"
+# st.subheader("2. Kies een behandeloptie")
+# behandeling_keuze = st.radio(
+#     "Welke behandeling wilt u overwegen?",
+#     options=[
+#         "Geen chirurgie of chemotherapie",
+#         "Alleen Orgaanchirurgie",
+#         "Alleen Chemotherapie",
+#         "Combinatie van Chirurgie en Chemotherapie"
+#     ],
+#     index=0
+# )
+
+# # naar binaire waarden voor het neuraal netwerk
+# org_chir = 1 if "Chirurgie" in behandeling_keuze else 0
+# chemo = 1 if "Chemotherapie" in behandeling_keuze else 0
+
+# st.divider()
+
+# # berekend risico
+# st.subheader("3. Berekend Risico")
+
+# # berekening via het model
+# prob_overlijden = prediction.get_prediction(model, patient, org_chir, chemo)
+# risico_label = "Hoog Risico" if prob_overlijden >= 0.50 else "Laag Risico"
+
+# st.metric(
+#     label="Risicocategorie", 
+#     value=risico_label, 
+#     delta=f"{prob_overlijden*100:.1f}% kans op overlijden", 
+#     delta_color="inverse"
+# )
+# st.progress(prob_overlijden)
+
+# st.divider()
+
+# Expliciete mapping: behandeloptie -> (org_chir, chemo)
+behandelopties = {
+    "Geen chirurgie of chemotherapie": (0, 0),
+    "Alleen Orgaanchirurgie": (1, 0),
+    "Alleen Chemotherapie": (0, 1),
+    "Combinatie van Chirurgie en Chemotherapie": (1, 1),
+}
+
+st.subheader("2. Vergelijk behandelopties")
+st.write(
+    "Voorspeld overlijdensrisico per behandeloptie, "
+    "gerangschikt van laag naar hoog."
+)
+
+resultaten = []
+
+# Vier voorspellingen voor dezelfde patiënt
+for behandeling, (org_chir, chemo) in behandelopties.items():
+    kans = float(
+        prediction.get_prediction(model, patient, org_chir, chemo)
+    )
+
+    if not math.isfinite(kans) or not 0 <= kans <= 1:
+        st.error(f"Ongeldige modeluitkomst voor: {behandeling}")
+        st.stop()
+
+    resultaten.append({
+        "Behandeloptie": behandeling,
+        "Kans": kans,
+        "Risicocategorie": (
+            "Hoog risico" if kans >= 0.50 else "Laag risico"
+        ),
+    })
+
+# Sorteer op de ongeronde voorspellingen
+ranking = (
+    pd.DataFrame(resultaten)
+    .sort_values("Kans", ascending=True, kind="stable")
+    .reset_index(drop=True)
+)
+
+ranking.insert(0, "Positie", range(1, len(ranking) + 1))
+ranking["Voorspeld overlijdensrisico"] = ranking["Kans"].map(
+    lambda kans: f"{kans * 100:.1f}%"
+)
+
+st.dataframe(
+    ranking[
+        [
+            "Positie",
+            "Behandeloptie",
+            "Voorspeld overlijdensrisico",
+            "Risicocategorie",
+        ]
     ],
-    index=0
+    hide_index=True,
+    use_container_width=True,
 )
 
-# naar binaire waarden voor het neuraal netwerk
-org_chir = 1 if "Chirurgie" in behandeling_keuze else 0
-chemo = 1 if "Chemotherapie" in behandeling_keuze else 0
-
-st.divider()
-
-# berekend risico
-st.subheader("3. Berekend Risico")
-
-# berekening via het model
-prob_overlijden = prediction.get_prediction(model, patient, org_chir, chemo)
-risico_label = "Hoog Risico" if prob_overlijden >= 0.50 else "Laag Risico"
-
-st.metric(
-    label="Risicocategorie", 
-    value=risico_label, 
-    delta=f"{prob_overlijden*100:.1f}% kans op overlijden", 
-    delta_color="inverse"
+st.caption(
+    "Dit is een vergelijking van modelvoorspellingen, "
+    "geen behandeladvies. Een lagere voorspelling bewijst niet "
+    "dat die behandeling het overlijdensrisico verlaagt."
 )
-st.progress(prob_overlijden)
 
 st.divider()
 
@@ -93,7 +162,7 @@ st.subheader("4. Vragen voor uw arts")
 st.write("Gebruik deze voorbeeldvragen ter voorbereiding op uw gesprek:")
 
 st.markdown(f"""
-* **Geschiktheid:** Is de optie *"{behandeling_keuze}"* geschikt voor mijn persoonlijke situatie?
+* **Geschiktheid:** Is de optie *"{behandeling}"* geschikt voor mijn persoonlijke situatie?
 * **Doel van de behandeling:** Is deze keuze gericht op genezing of op levensverlenging en kwaliteit van leven?
 * **Bijwerkingen:** Welke bijwerkingen of hersteltijd kan ik verwachten bij deze behandeling?
 """)
