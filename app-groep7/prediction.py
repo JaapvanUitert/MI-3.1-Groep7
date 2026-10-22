@@ -35,7 +35,7 @@ def numeriek_stadium(stadium):
     elif value == "II":
         return "2"
     elif value == "III":
-        return "3A" 
+        return "3" 
     else:
         return "4"
 
