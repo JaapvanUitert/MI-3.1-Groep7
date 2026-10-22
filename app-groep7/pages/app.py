@@ -104,7 +104,7 @@ for behandeling, (org_chir, chemo) in behandelopties.items():
 
     if kans >= 0.70:
         categorie = "Hoog risico"
-    elif kans >= 0.60:
+    elif kans >= 0.50:
         categorie = "Gemiddeld risico"
     else:
         categorie = "Laag risico"
@@ -131,7 +131,6 @@ tabel = ranking[
     [
         "Positie",
         "Behandeloptie",
-        "Voorspeld overlijdensrisico",
         "Risicocategorie",
     ]
 ]
@@ -165,8 +164,8 @@ st.markdown(f"""
 * **Bijwerkingen:** Welke bijwerkingen of hersteltijd kan ik verwachten bij deze behandeling?
 """)
 
-st.text_area(
-    "Aanvullende eigen vragen of opmerkingen:",
-    placeholder="Typ hier uw eigen vragen om mee te nemen naar de arts...",
-    height=120
-)
+# st.text_area(
+#     "Aanvullende eigen vragen of opmerkingen:",
+#     placeholder="Typ hier uw eigen vragen om mee te nemen naar de arts...",
+#     height=120
+# )
