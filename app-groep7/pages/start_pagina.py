@@ -1,7 +1,7 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="CDSS Longkanker Keuzehulp",
+    page_title="Longkanker Keuzehulp",
     initial_sidebar_state="collapsed"
 )
 

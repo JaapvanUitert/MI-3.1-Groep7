@@ -6,5 +6,5 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-st.title(" De CDSS longkanker keuzehulp ")
+st.title("longkanker keuzehulp ")
 st.caption("Een project van de bacheloropleiding medische informatiekunde aan de Universiteit van Amsterdam \n Gemaakt door groep 7: Lin, Tyra en Jaap")
