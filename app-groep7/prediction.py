@@ -31,13 +31,13 @@ def numeriek_stadium(stadium):
     value = str(stadium).strip()
 
     if value == "I":
-        return "1"
+        return 1
     elif value == "II":
-        return "2"
+        return 2
     elif value == "III":
-        return "3" 
+        return 3 
     else:
-        return "4"
+        return 4
 
 def make_input(patient, leeftijd, geslacht, stadium, org_chir=None, chemo=None):
     values = dict(patient)
