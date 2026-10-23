@@ -8,8 +8,12 @@ st.set_page_config(
 
 st.title("Longkanker en behandelopties")
 
+st.write("De gebruikelijke behandeling van longkanker is afhankelijk van de subtype, stadium en conditie van de patiënt. [2] "
+"\n Stadium I: orgaanchirurgie, maar bij hoge leeftijd en/of slechte conditie kan een andere behandeling worden overwogen."
+"\n Stadium II: vaak wordt orgaanchirurgie en adjuvante chemotherapie aangeraden bij patiënten met stadium II"
+"\n Stadium III: vaak een combinatie van chemotherapie en radiotherapie. Er is ook een mogelijkheid tot orgaanchirurgie."
+"\n Stadium IV: is afhankelijk of er wel of geen mutaties zijn. Bij wel mutaties kan er bijvoorbeeld chemotherapie gebruikt worden")
+
 st.divider()
 st.subheader("referenties")
-st.write("1. Federatie medische specialisten. Niet kleincellig longcarcinoom - resectabel en lokaal uitgebreid NSCLC. Richtlijnendatabase [Internet]. 2013 Oct 6 [cited 2026 Oct 14];. Beschikbaar op: https://richtlijnendatabase.nl/richtlijn/niet_kleincellig_longcarcinoom/resectabel_en_lokaal_uitgebreid_nsclc.html " \
-"\n 2.  Longkanker [Internet]. Iknl.nl. 2018 [cited 2026 Oct 14]. Beschikbaar op: https://iknl.nl/kankersoorten/longkanker " \
-"\n 3. Medlock S, Wyatt JC, Patel VL, Shortliffe EH, Abu-Hanna A. Modeling information flows in clinical decision support: Key insights for enhancing system effectiveness. J Am Med Inform Assoc [Internet]. 2016 Sept [cited 2026 Oct 22];23(5):1001–6. Available from: https://pubmed.ncbi.nlm.nih.gov/26911809/")
+st.write("1.  Longkanker [Internet]. Iknl.nl. 2018 [cited 2026 Oct 14]. Beschikbaar op: https://iknl.nl/kankersoorten/longkanker ")
